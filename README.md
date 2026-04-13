@@ -430,3 +430,14 @@ Now anyone who uses your repository will learn from your struggles and avoid the
 
 
 
+
+
+
+🔥 Approach 1: Shut Down the OS (Stops the server's operating system)
+This uses the IP address from your inventory to SSH into the server and run a shutdown command
+One-liner command:
+ansible -i inventory.ini monitoring_group -m command -a "sudo shutdown -h now"
+
+
+
+
