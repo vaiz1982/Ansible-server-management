@@ -1,0 +1,34 @@
+---
+- name: Install common monitoring and admin tools
+  hosts: monitoring_group
+  become: yes
+  
+  tasks:
+    - name: Install useful packages
+      apt:
+        name:
+          - htop
+          - nethogs
+          - iotop
+          - ncdu
+          - tree
+          - tmux
+          - git
+          - curl
+          - wget
+          - net-tools
+        state: present
+        update_cache: yes
+    
+    - name: Verify installations
+      command: "{{ item }} --version"
+      loop:
+        - htop
+        - git
+        - curl
+      register: version_check
+      ignore_errors: yes
+    
+    - name: Show versions
+      debug:
+        var: version_check.results

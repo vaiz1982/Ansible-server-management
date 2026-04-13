@@ -1,0 +1,44 @@
+---
+- name: Complete Server Health Check
+  hosts: monitoring_group
+  
+  tasks:
+    - name: Get uptime
+      command: uptime
+      register: uptime_result
+    
+    - name: Show uptime
+      debug:
+        var: uptime_result.stdout
+    
+    - name: Get memory info
+      command: free -h
+      register: memory_result
+    
+    - name: Show memory
+      debug:
+        var: memory_result.stdout_lines
+    
+    - name: Get disk usage
+      command: df -h /
+      register: disk_result
+    
+    - name: Show disk
+      debug:
+        var: disk_result.stdout_lines
+    
+    - name: Check reboot status
+      shell: test -f /var/run/reboot-required && echo "Reboot needed" || echo "No reboot needed"
+      register: reboot_check
+    
+    - name: Show reboot status
+      debug:
+        var: reboot_check.stdout
+    
+    - name: Get last 5 reboots
+      command: last reboot | head -5
+      register: last_reboots
+    
+    - name: Show reboot history
+      debug:
+        var: last_reboots.stdout_lines
