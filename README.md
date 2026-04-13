@@ -128,3 +128,290 @@ Review all playbooks before running them on production servers
 
 
 
+System Information
+# Get ALL system facts (very detailed)
+ansible -i inventory.ini monitoring_group -m setup
+
+# Get specific facts
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_os_family"
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_memory_mb"
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_processor_*"
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_disk*"
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_architecture"
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_kernel"
+
+
+
+
+
+Network Information
+# Get network interfaces
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_interfaces"
+
+# Get default IPv4 address
+ansible -i inventory.ini monitoring_group -m setup -a "filter=ansible_default_ipv4"
+
+# Get all IP addresses
+ansible -i inventory.ini monitoring_group -m command -a "ip addr show"
+
+# Show routing table
+ansible -i inventory.ini monitoring_group -m command -a "ip route show"
+
+# Show open ports
+ansible -i inventory.ini monitoring_group -m command -a "ss -tlnp"
+
+
+
+
+
+
+
+User Information
+# List all users
+ansible -i inventory.ini monitoring_group -m command -a "cat /etc/passwd | cut -d: -f1"
+
+# Who is logged in
+ansible -i inventory.ini monitoring_group -m command -a "who"
+
+# Last logins
+ansible -i inventory.ini monitoring_group -m command -a "last -10"
+
+# Sudo users
+ansible -i inventory.ini monitoring_group -m command -a "grep '^sudo' /etc/group"
+
+
+
+
+
+
+Package Information
+# List installed packages count
+ansible -i inventory.ini monitoring_group -m shell -a "dpkg -l | wc -l"
+
+# Check if specific package is installed
+ansible -i inventory.ini monitoring_group -m command -a "dpkg -l | grep nginx"
+
+# List recently installed packages
+ansible -i inventory.ini monitoring_group -m shell -a "grep ' install ' /var/log/dpkg.log | tail -20"
+
+# Check available updates
+ansible -i inventory.ini monitoring_group -m shell -a "apt list --upgradable 2>/dev/null | head -20"
+
+
+
+
+
+
+
+Service Information
+# List all running services
+ansible -i inventory.ini monitoring_group -m shell -a "systemctl list-units --type=service --state=running --no-pager"
+
+# Check specific service status
+ansible -i inventory.ini monitoring_group -m service -a "name=ssh state=started"
+
+# Show failed services
+ansible -i inventory.ini monitoring_group -m shell -a "systemctl --failed"
+
+
+
+
+
+
+
+
+Disk & Storage Information
+# Disk usage
+ansible -i inventory.ini monitoring_group -m command -a "df -h"
+
+# Inode usage
+ansible -i inventory.ini monitoring_group -m command -a "df -i"
+
+# Find large files (>100MB)
+ansible -i inventory.ini monitoring_group -m shell -a "find / -type f -size +100M 2>/dev/null | head -20"
+
+# Mounted filesystems
+ansible -i inventory.ini monitoring_group -m command -a "mount | column -t"
+
+
+
+
+
+
+
+
+
+
+Process Information
+# Top 5 CPU consuming processes
+ansible -i inventory.ini monitoring_group -m shell -a "ps aux --sort=-%cpu | head -6"
+
+# Top 5 memory consuming processes
+ansible -i inventory.ini monitoring_group -m shell -a "ps aux --sort=-%mem | head -6"
+
+# Process count
+ansible -i inventory.ini monitoring_group -m shell -a "ps aux | wc -l"
+
+# Zombie processes
+ansible -i inventory.ini monitoring_group -m shell -a "ps aux | grep defunct"
+
+
+
+
+
+
+
+
+
+
+Security Information
+# Check failed login attempts
+ansible -i inventory.ini monitoring_group -m command -a "grep 'Failed password' /var/log/auth.log | tail -10"
+
+# Check for root logins
+ansible -i inventory.ini monitoring_group -m command -a "grep 'root' /var/log/auth.log | tail -10"
+
+# Check SSH configuration
+ansible -i inventory.ini monitoring_group -m command -a "grep -E 'PermitRootLogin|PasswordAuthentication' /etc/ssh/sshd_config"
+
+# Check firewall status
+ansible -i inventory.ini monitoring_group -m command -a "sudo ufw status"
+
+
+
+
+
+
+
+
+
+
+
+
+🎯 Quick Reference: Working vs Not Working
+✅ CORRECT	❌ WRONG
+ansible-playbook playbook.yml	./playbook.yml
+ansible-playbook -i inventory.ini playbook.yml	ansible-playbook playbook.yml (no inventory)
+ansible_user=ubuntu (for Ubuntu EC2)	ansible_user=root (unless configured)
+Private IPs when inside AWS	Public IPs when inside AWS (slower, cost)
+chmod 600 key.pem	chmod 644 key.pem
+
+
+
+
+
+
+📊 Testing Your Setup
+Test 1: Basic Connectivity
+ansible -i inventory.ini monitoring_group -m ping
+# Expected: "pong" from all servers
+
+
+
+
+Test 2: Ad-hoc Command
+ansible -i inventory.ini monitoring_group -m command -a "uptime"
+# Expected: uptime output from all servers
+
+
+
+
+
+Test 3: Run a Playbook
+ansible-playbook -i inventory.ini playbooks/health-check.yml
+# Expected: Successful execution on all servers
+
+
+
+
+
+
+🔒 Security Best Practices
+Never commit inventory.ini or private keys to GitHub
+
+Use specific IPs in security groups (0.0.0.0/0 is risky)
+
+Rotate SSH keys regularly
+
+Use Ansible Vault for sensitive data
+
+Run playbooks with --check first for dry run
+
+
+
+
+
+
+
+
+
+
+
+
+🙏 Acknowledgments
+This troubleshooting guide was built from real-world experience and common mistakes encountered while learning Ansible on AWS EC2.
+
+
+
+
+
+
+
+
+
+
+💡 Bonus: Create a Cheat Sheet
+cat > CHEATSHEET.md << 'EOF'
+# Ansible Quick Reference
+
+## Most Common Commands
+```bash
+# Test connection
+ansible -i inventory.ini all -m ping
+
+# Run ad-hoc command
+ansible -i inventory.ini all -m command -a "uptime"
+
+# Run playbook
+ansible-playbook -i inventory.ini playbook.yml
+
+# Run playbook with check (dry run)
+ansible-playbook -i inventory.ini playbook.yml --check
+
+# Run playbook with verbose output
+ansible-playbook -i inventory.ini playbook.yml -vvv
+
+
+
+
+
+
+
+
+
+
+
+Common Inventory Patterns
+# Public IPs (from outside AWS)
+[group]
+54.x.x.x ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem
+
+# Private IPs (inside same VPC)
+[group]
+172.31.x.x ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem
+
+# Local testing
+[local]
+localhost ansible_connection=local
+
+
+
+
+
+
+
+Now anyone who uses your repository will learn from your struggles and avoid the same mistakes! 🎉
+
+
+
+

@@ -1,0 +1,72 @@
+---
+- name: Comprehensive Server Information Gathering
+  hosts: monitoring_group
+  gather_facts: yes
+  
+  tasks:
+    - name: Display basic system info
+      debug:
+        msg:
+          - "Hostname: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "Architecture: {{ ansible_architecture }}"
+          - "CPU Cores: {{ ansible_processor_cores }}"
+          - "Total RAM: {{ ansible_memory_mb.real.total }} MB"
+          - "Swap: {{ ansible_memory_mb.swap.total }} MB"
+    
+    - name: Check disk usage
+      command: df -h
+      register: disk
+    
+    - name: Display disk usage
+      debug:
+        var: disk.stdout_lines
+    
+    - name: Check memory usage
+      command: free -h
+      register: memory
+    
+    - name: Display memory
+      debug:
+        var: memory.stdout_lines
+    
+    - name: Check uptime
+      command: uptime
+      register: uptime_info
+    
+    - name: Display uptime
+      debug:
+        var: uptime_info.stdout
+    
+    - name: Check top 5 CPU processes
+      shell: ps aux --sort=-%cpu | head -6
+      register: top_cpu
+    
+    - name: Display top CPU processes
+      debug:
+        var: top_cpu.stdout_lines
+    
+    - name: Check failed logins
+      shell: grep "Failed password" /var/log/auth.log | tail -5 || echo "No failed logins"
+      register: failed_logins
+      ignore_errors: yes
+    
+    - name: Display failed logins
+      debug:
+        var: failed_logins.stdout_lines
+    
+    - name: Check for pending reboots
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+    
+    - name: Reboot status
+      debug:
+        msg: "⚠️ REBOOT REQUIRED" if reboot_required.stat.exists else "✅ No reboot needed"
+    
+    - name: Save all facts to file
+      copy:
+        content: "{{ ansible_facts | to_nice_yaml }}"
+        dest: "/tmp/{{ ansible_hostname }}_facts_{{ ansible_date_time.date }}.yml"
+      delegate_to: localhost
