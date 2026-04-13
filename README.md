@@ -1,3 +1,18 @@
+✅ What the Script Now Does
+Step	Action
+1	Updates package list
+2	Installs Python 3
+3	Installs Ansible (new!)
+4	Creates SSH directory
+5	Creates Ansible workspace (~/ansible/)
+6	Creates example inventory file
+7	Creates ansible.cfg configuration
+8	Shows installed versions
+
+
+
+
+
 # Ansible Server Management
 
 ![Ansible](https://img.shields.io/badge/Ansible-2.9+-red)
