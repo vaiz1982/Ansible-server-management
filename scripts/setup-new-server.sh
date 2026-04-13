@@ -12,6 +12,11 @@ echo "========================================="
 echo "📦 Updating package list..."
 sudo apt update
 
+
+# Update package list
+echo "📦 Upgrading package list..."
+sudo apt upgrade
+
 # Install Python (required for Ansible)
 echo "🐍 Installing Python..."
 sudo apt install -y python3 python3-apt python3-pip
